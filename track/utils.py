@@ -1,91 +1,91 @@
 import json
 import os
 
-from datetime import date, timedelta
-from settings import FILE_NAME
-from typing import Any
+from representators import get_format_stat
+from settings import STATISTICS_FILE
+from typing import NewType
 
 TimeDate = list[list[str | int]]
 
 
-def add_statistics(project_name: str, time: list[str | int]) -> str:
-    if project_name == 'null':
-        return 'Enter project name! (-p/--project=<project_name>)'
-    statistics = {}
-    statistics[project_name] = [time]
-    if os.path.isfile(FILE_NAME):
-        write_to_file(project_name, time)
+class UserData:
+    project_name: str
+    time: list[str | int]
+
+
+def add_statistics(new_data: UserData) -> bool:
+    if new_data.project_name == 'null':
+        return False
+    if is_file():
+        data = read_from_file()
+        if data:
+            write_data = data_change(data, new_data.project_name, new_data.time)
+            write_to_file(write_data)
+        else:
+            return False
     else:
-        create_file(statistics)
-    return 'Complete!'
+        write_data = {}
+        write_data[new_data.project_name] = [new_data.time]
+        create_file(write_data)
+    return True
 
 
 def print_statistics(project_name: str, days: int) -> str:
-    if os.path.isfile(FILE_NAME):
+    if is_file():
         data = read_from_file()
-        return get_statistics(data, project_name, days)
+        if data:
+            print_data = get_statistics(data, project_name, days)
+            if print_data:
+                return print_data
+            else:
+                return f'Project "{project_name}" statistics not found!'
+        else:
+            return f'{STATISTICS_FILE}: File read error!'
     else:
-        return f'Project "{project_name}" statistics not found!'
+        return f'File {STATISTICS_FILE} not found!'
 
 
-def write_to_file(project_name: str, time: list[str | int]) -> None:
-    data = read_from_file()
+def data_change(data: dict[str, TimeDate], project_name: str, time: TimeDate) -> dict[str, TimeDate]:
     is_date = False
-    try:
+    if project_name in data:
         for el in data[project_name]:
             if el[0] == time[0]:
                 el[1] += time[1]
                 is_date = True
         if is_date is False:
             data[project_name].append(time)
-    except KeyError:
+    else:
         data[project_name] = [time]
-    with open(FILE_NAME, 'w') as f:
-        json.dump(data, f)
-
-
-def read_from_file() -> Any:
-    with open(FILE_NAME, 'r') as f:
-        data = json.load(f)
     return data
 
 
-def create_file(statistics: dict[str, TimeDate]) -> None:
-    with open(FILE_NAME, 'w') as f:
-        json.dump(statistics, f)
+def write_to_file(write_data: dict[str, TimeDate]) -> None:
+    with open(STATISTICS_FILE, 'w') as file_json:
+        json.dump(write_data, file_json)
+
+
+def read_from_file() -> dict[str, TimeDate] | None:
+    try:
+        with open(STATISTICS_FILE, 'r') as file_json:
+            data = json.load(file_json)
+        return data
+    except ValueError:
+        return None
+
+
+def create_file(write_data: dict[str, TimeDate]) -> None:
+    with open(STATISTICS_FILE, 'w') as file_json:
+        json.dump(write_data, file_json)
 
 
 def get_statistics(
         data: dict[str, TimeDate],
         project_name: str,
         days: int,
-) -> str:
-    dates = get_date_list(days)
-    project_statistics = ''
-    try:
-        for stat in data[project_name]:
-            if stat[0] in dates:
-                project_statistics += f'{stat[0]} {get_format_time(int(stat[1]))}\n'
-        if project_statistics:
-            return project_statistics
-        else:
-            return f'Project "{project_name}" statistics not found!'
-    except KeyError:
-        return f'Project "{project_name}" statistics not found!'
+) -> str | None:
+    project_statistics = get_format_stat(data, project_name, days)
+    return project_statistics if project_statistics else None
 
 
-def get_date_list(days: int) -> list[str]:
-    dates = []
-    for delta in range(0, days):
-        date_str = (date.today() - timedelta(days=delta)).strftime("%d.%m.%y")
-        dates.append(date_str)
-    return dates
-
-
-def get_format_time(minutes: int) -> str:
-    if minutes < 60:
-        return f'{minutes}m'
-    else:
-        hours = minutes // 60
-        minutes_remainder = minutes % 60
-        return f'{hours}h {minutes_remainder}m'
+def is_file() -> bool:
+    return True if os.path.isfile(STATISTICS_FILE) else False

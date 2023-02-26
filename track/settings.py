@@ -1,1 +1,1 @@
-FILE_NAME = 'statistics.json'
+STATISTICS_FILE = 'statistics.json'

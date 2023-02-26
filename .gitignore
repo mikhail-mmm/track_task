@@ -1,6 +1,8 @@
 .DS_Store
+track/statistics.json
 
 # Byte-compiled / optimized / DLL files
+track/__pycache__/
 __pycache__/
 *.py[cod]
 *$py.class
