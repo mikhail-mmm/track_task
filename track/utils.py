@@ -1,51 +1,43 @@
-import json
-import os
-
+from file_handling import is_file, read_from_file, write_to_file, create_file
+from parser_value import TrackValue, StatValue
 from representators import get_format_stat
 from settings import STATISTICS_FILE
-from typing import NewType
-
-TimeDate = list[list[str | int]]
 
 
-class UserData:
-    project_name: str
-    time: list[str | int]
-
-
-def add_statistics(new_data: UserData) -> bool:
-    if new_data.project_name == 'null':
-        return False
+def add_statistics(track_data: TrackValue) -> None:
     if is_file():
         data = read_from_file()
         if data:
-            write_data = data_change(data, new_data.project_name, new_data.time)
+            write_data = statistics_update(data, track_data.project_name, track_data.time)
             write_to_file(write_data)
         else:
-            return False
+            print_response(f'{STATISTICS_FILE}: File read error!')
     else:
         write_data = {}
-        write_data[new_data.project_name] = [new_data.time]
+        write_data[track_data.project_name] = [track_data.time]
         create_file(write_data)
-    return True
 
 
-def print_statistics(project_name: str, days: int) -> str:
+def get_statistics(stat_data: StatValue) -> None:
     if is_file():
         data = read_from_file()
         if data:
-            print_data = get_statistics(data, project_name, days)
-            if print_data:
-                return print_data
+            project_statistics = get_format_stat(data, stat_data.project_name, stat_data.days)
+            if project_statistics:
+                print_response(project_statistics)
             else:
-                return f'Project "{project_name}" statistics not found!'
+                print_response(f'Project "{stat_data.project_name}" statistics not found!')
         else:
-            return f'{STATISTICS_FILE}: File read error!'
+            print_response(f'{STATISTICS_FILE}: File read error!')
     else:
-        return f'File {STATISTICS_FILE} not found!'
+        print_response(f'File {STATISTICS_FILE} not found!')
 
 
-def data_change(data: dict[str, TimeDate], project_name: str, time: TimeDate) -> dict[str, TimeDate]:
+def statistics_update(
+        data: dict[str, list[list[str | int]]],
+        project_name: str,
+        time: list[list[str | int]],
+) -> dict[str, list[list[str | int]]]:
     is_date = False
     if project_name in data:
         for el in data[project_name]:
@@ -59,33 +51,20 @@ def data_change(data: dict[str, TimeDate], project_name: str, time: TimeDate) ->
     return data
 
 
-def write_to_file(write_data: dict[str, TimeDate]) -> None:
-    with open(STATISTICS_FILE, 'w') as file_json:
-        json.dump(write_data, file_json)
+def is_required_attributes(subparser: str, project_name: str, days: int | None = None) -> bool:
+    if subparser == 'track':
+        if project_name is None:
+            print_response('Please enter -p/--project=<project_name>')
+            return False
+    elif subparser == 'stat':
+        if project_name is None:
+            print_response('Please enter -p/--project=<project_name>')
+            return False
+        if days is None:
+            print_response('Please enter -d/--days=<amount_of_days>')
+            return False
+    return True
 
 
-def read_from_file() -> dict[str, TimeDate] | None:
-    try:
-        with open(STATISTICS_FILE, 'r') as file_json:
-            data = json.load(file_json)
-        return data
-    except ValueError:
-        return None
-
-
-def create_file(write_data: dict[str, TimeDate]) -> None:
-    with open(STATISTICS_FILE, 'w') as file_json:
-        json.dump(write_data, file_json)
-
-
-def get_statistics(
-        data: dict[str, TimeDate],
-        project_name: str,
-        days: int,
-) -> str | None:
-    project_statistics = get_format_stat(data, project_name, days)
-    return project_statistics if project_statistics else None
-
-
-def is_file() -> bool:
-    return True if os.path.isfile(STATISTICS_FILE) else False
+def print_response(response: str) -> None:
+    print(response)
