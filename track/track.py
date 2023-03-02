@@ -1,8 +1,8 @@
 import argparse
 
 from datetime import date
-from parser_value import TrackValue, StatValue
-from utils import add_statistics, get_statistics, is_required_attributes
+from track.settings.parser_value import TrackValue, StatValue
+from track.utils.utils import add_statistics, get_statistics, is_required_attributes
 
 
 def track(args: argparse.Namespace) -> None:

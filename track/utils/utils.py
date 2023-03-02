@@ -1,7 +1,7 @@
-from file_handling import is_file, read_from_file, write_to_file, create_file
-from parser_value import TrackValue, StatValue
-from representators import get_format_stat
-from settings import STATISTICS_FILE
+from track.utils.files import is_file, read_from_file, write_to_file, create_file
+from track.settings.parser_value import TrackValue, StatValue
+from track.utils.representators import get_format_stat
+from track.settings.settings import STATISTICS_FILEPATH
 
 
 def add_statistics(track_data: TrackValue) -> None:
@@ -11,7 +11,7 @@ def add_statistics(track_data: TrackValue) -> None:
             write_data = statistics_update(data, track_data.project_name, track_data.time)
             write_to_file(write_data)
         else:
-            print_response(f'{STATISTICS_FILE}: File read error!')
+            print_response(f'{STATISTICS_FILEPATH}: File read error!')
     else:
         write_data = {}
         write_data[track_data.project_name] = [track_data.time]
@@ -28,9 +28,9 @@ def get_statistics(stat_data: StatValue) -> None:
             else:
                 print_response(f'Project "{stat_data.project_name}" statistics not found!')
         else:
-            print_response(f'{STATISTICS_FILE}: File read error!')
+            print_response(f'{STATISTICS_FILEPATH}: File read error!')
     else:
-        print_response(f'File {STATISTICS_FILE} not found!')
+        print_response(f'File {STATISTICS_FILEPATH} not found!')
 
 
 def statistics_update(
