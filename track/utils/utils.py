@@ -1,5 +1,5 @@
 from track.utils.files import is_file, read_from_file, write_to_file, create_file
-from track.settings.parser_value import TrackValue, StatValue
+from track.settings.parser_value import TrackValue, StatValue, JsonData
 from track.utils.representators import get_format_stat
 from track.settings.settings import STATISTICS_FILEPATH
 
@@ -34,15 +34,15 @@ def get_statistics(stat_data: StatValue) -> None:
 
 
 def statistics_update(
-        data: dict[str, list[list[str | int]]],
+        data: JsonData,
         project_name: str,
-        time: list[list[str | int]],
-) -> dict[str, list[list[str | int]]]:
+        time: list[str | int],
+) -> JsonData:
     is_date = False
     if project_name in data:
         for el in data[project_name]:
             if el[0] == time[0]:
-                el[1] += time[1]
+                el[1] = int(el[1]) + int(time[1])
                 is_date = True
         if is_date is False:
             data[project_name].append(time)

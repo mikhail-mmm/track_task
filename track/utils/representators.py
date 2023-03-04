@@ -1,7 +1,8 @@
 from datetime import date, timedelta
+from track.settings.parser_value import JsonData
 
 
-def get_format_stat(data: dict[str, list[list[str | int]]], project_name: str, days: int) -> str | None:
+def get_format_stat(data: JsonData, project_name: str, days: int) -> str | None:
     dates = get_dates(days)
     project_statistics = ''
     if project_name in data:
@@ -9,7 +10,7 @@ def get_format_stat(data: dict[str, list[list[str | int]]], project_name: str, d
             if stat[0] in dates:
                 time = get_format_time(int(stat[1]))
                 project_statistics += f'{stat[0]} {time}\n'
-        return project_statistics or None
+    return project_statistics or None
 
 
 def get_dates(days: int) -> list[str]:

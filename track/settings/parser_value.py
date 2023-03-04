@@ -11,3 +11,7 @@ class TrackValue:
 class StatValue:
     project_name: str
     days: int
+
+
+TrackData = dict[str, list[str | int]]
+JsonData = dict[str, list[list[str | int]]]
